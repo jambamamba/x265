@@ -25,8 +25,11 @@
 #include "output.h"
 #include "yuv.h"
 #include "y4m.h"
+#include "writer.h"
 
 #include "raw.h"
+
+#include <vector>
 
 using namespace X265_NS;
 
@@ -42,5 +45,11 @@ ReconFile* ReconFile::open(const char *fname, int width, int height, uint32_t bi
 
 OutputFile* OutputFile::open(const char *fname, InputFileInfo& inputInfo)
 {
+    std::string ip;
+    std::string port;
+    if(strncmp(fname, UDP, strlen(UDP)) == 0)
+    {
+        return UdpWriter::construct(fname);
+    }
     return new RAWOutput(fname, inputInfo);
 }

@@ -41,11 +41,14 @@
 #include <signal.h>
 #include <errno.h>
 #include <fcntl.h>
-
+#include <iostream>
 #include <string>
 #include <ostream>
 #include <fstream>
 #include <queue>
+
+#include "input/frameq.h"
+#include "input/reader.h"
 
 #define CONSOLE_TITLE_SIZE 200
 #ifdef _WIN32
@@ -116,7 +119,7 @@ struct CLIOptions
 
     void destroy();
     void printStatus(uint32_t frameNum);
-    bool parse(int argc, char **argv);
+    bool parse(int argc, char **argv, Reader *reader);
     bool parseZoneParam(int argc, char **argv, x265_param* globalParam, int zonefileCount);
     bool parseQPFile(x265_picture &pic_org);
     bool parseZoneFile();
@@ -275,7 +278,7 @@ bool CLIOptions::parseZoneParam(int argc, char **argv, x265_param* globalParam, 
     return false;
 }
 
-bool CLIOptions::parse(int argc, char **argv)
+bool CLIOptions::parse(int argc, char **argv, Reader *reader)
 {
     bool bError = false;
     int bShowHelp = false;
@@ -525,11 +528,13 @@ bool CLIOptions::parse(int argc, char **argv)
     info.sarHeight = param->vui.sarHeight;
     info.skipFrames = seek;
     info.frameCount = 0;
+    info.reader = reader;
     getParamAspectRatio(param, info.sarWidth, info.sarHeight);
 
+    reader->args.device.Name = inputfn;
 
     this->input = InputFile::open(info, this->bForceY4m);
-    if (!this->input || this->input->isFail())
+    if (!reader && (!this->input || this->input->isFail()))
     {
         x265_log_file(param, X265_LOG_ERROR, "unable to open input file <%s>\n", inputfn);
         return true;
@@ -852,6 +857,14 @@ int main(int argc, char **argv)
     PROFILE_INIT();
     THREAD_NAME("API", 0);
 
+    /////osm
+    Reader reader;
+    if(!reader.ParseDevicesFromCommandLine(argc, argv))
+    {
+        return -1;
+    }
+    //////
+
     GetConsoleTitle(orgConsoleTitle, CONSOLE_TITLE_SIZE);
     SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_AWAYMODE_REQUIRED);
 #if _WIN32
@@ -862,7 +875,7 @@ int main(int argc, char **argv)
     ReconPlay* reconPlay = NULL;
     CLIOptions cliopt;
 
-    if (cliopt.parse(argc, argv))
+    if (cliopt.parse(argc, argv, &reader))
     {
         cliopt.destroy();
         if (cliopt.api)

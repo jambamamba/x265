@@ -54,6 +54,7 @@ protected:
     ThreadSafeInteger writeCount;
     char* buf[QUEUE_SIZE];
     FILE *ifs;
+    Reader *reader;
     int guessFrameCount();
     void threadMain();
 

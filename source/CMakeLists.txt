@@ -86,9 +86,9 @@ if(UNIX)
     endif()
     mark_as_advanced(LIBRT)
     find_library(LIBDL dl)
-    if(LIBDL)
+#    if(LIBDL)#todo osm
         list(APPEND PLATFORM_LIBS dl)
-    endif()
+#    endif()
     option(ENABLE_LIBNUMA "Enable libnuma usage (Linux only)" ON)
     if(ENABLE_LIBNUMA)
         find_package(Numa)
@@ -223,7 +223,7 @@ if(GCC)
     elseif(X86 AND NOT X64)
         string(FIND "${CMAKE_CXX_FLAGS}" "-march" marchPos)
         if(marchPos LESS "0")
-            add_definitions(-march=i686)
+#            add_definitions(-march=i686)#todo osm
             if(WIN32 AND NOT INTEL_CXX AND NOT CLANG AND
                CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 6.0 AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 7.0)
                 add_definitions(-mpreferred-stack-boundary=2)
@@ -704,8 +704,9 @@ add_custom_target(uninstall
 # Main CLI application
 set(ENABLE_CLI ON CACHE BOOL "Build standalone CLI application")
 if(ENABLE_CLI)
-    file(GLOB InputFiles input/input.cpp input/yuv.cpp input/y4m.cpp input/*.h)
-    file(GLOB OutputFiles output/output.cpp output/reconplay.cpp output/*.h
+    file(GLOB InputFiles input/input.cpp input/yuv.cpp input/y4m.cpp
+        input/frameq.cpp input/reader.cpp input/devicereader.cpp input/*.h input/yuv_rgb.c input/yuv_rgb.h)
+    file(GLOB OutputFiles output/output.cpp output/reconplay.cpp output/writer.cpp output/*.h
                           output/yuv.cpp output/y4m.cpp # recon
                           output/raw.cpp)               # muxers
     source_group(input FILES ${InputFiles})

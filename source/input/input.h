@@ -33,6 +33,8 @@
 
 #include "common.h"
 
+class Reader;
+
 namespace X265_NS {
 // private x265 namespace
 
@@ -54,6 +56,8 @@ struct InputFileInfo
     /* user supplied */
     int skipFrames;
     const char *filename;
+
+    Reader *reader;
 };
 
 class InputFile

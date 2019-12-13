@@ -24,6 +24,7 @@
 #define _LARGEFILE_SOURCE
 #include "yuv.h"
 #include "common.h"
+#include "reader.h"
 
 #include <iostream>
 
@@ -51,6 +52,7 @@ YUVInput::YUVInput(InputFileInfo& info)
     colorSpace = info.csp;
     threadActive = false;
     ifs = NULL;
+    reader = info.reader;
 
     uint32_t pixelbytes = depth > 8 ? 2 : 1;
     framesize = 0;
@@ -73,10 +75,14 @@ YUVInput::YUVInput(InputFileInfo& info)
         setmode(fileno(stdin), O_BINARY);
 #endif
     }
-    else
+    else if(!reader)
+    {
         ifs = x265_fopen(info.filename, "rb");
-    if (ifs && !ferror(ifs))
+    }
+    if (reader || (ifs && !ferror(ifs)))
+    {
         threadActive = true;
+    }
     else
     {
         if (ifs && ifs != stdin)
@@ -98,7 +104,7 @@ YUVInput::YUVInput(InputFileInfo& info)
 
     info.frameCount = -1;
     /* try to estimate frame count, if this is not stdin */
-    if (ifs != stdin)
+    if (ifs && ifs != stdin)
     {
         int64_t cur = ftello(ifs);
         if (cur >= 0)
@@ -158,7 +164,7 @@ void YUVInput::threadMain()
 }
 bool YUVInput::populateFrameQueue()
 {
-    if (!ifs || ferror(ifs))
+    if (!reader && (!ifs || ferror(ifs)))
         return false;
     /* wait for room in the ring buffer */
     int written = writeCount.get();
@@ -171,13 +177,21 @@ bool YUVInput::populateFrameQueue()
             return false;
     }
     ProfileScopeEvent(frameRead);
-    if (fread(buf[written % QUEUE_SIZE], framesize, 1, ifs) == 1)
+    if(reader)
+    {
+        reader->ReadYuvFrame(buf[written % QUEUE_SIZE], framesize, width, height);
+        writeCount.incr();
+        return true;
+    }
+    else if (fread(buf[written % QUEUE_SIZE], framesize, 1, ifs) == 1)
     {
         writeCount.incr();
         return true;
     }
     else
+    {
         return false;
+    }
 }
 
 bool YUVInput::readPicture(x265_picture& pic)
