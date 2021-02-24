@@ -705,7 +705,9 @@ add_custom_target(uninstall
 set(ENABLE_CLI ON CACHE BOOL "Build standalone CLI application")
 if(ENABLE_CLI)
     file(GLOB InputFiles input/input.cpp input/yuv.cpp input/y4m.cpp
-        input/frameq.cpp input/reader.cpp input/devicereader.cpp input/*.h input/yuv_rgb.c input/yuv_rgb.h)
+        input/frameq.cpp input/reader.cpp input/devicereader.cpp
+        input/ScreenCapture/*
+        input/*.h input/yuv_rgb.c input/yuv_rgb.h)
     file(GLOB OutputFiles output/output.cpp output/reconplay.cpp output/writer.cpp output/*.h
                           output/yuv.cpp output/y4m.cpp # recon
                           output/raw.cpp)               # muxers
@@ -735,6 +737,15 @@ if(ENABLE_CLI)
                         $<TARGET_OBJECTS:encoder> $<TARGET_OBJECTS:common> ${ASM_OBJS})
         endif()
     else()
+        SET(CMAKE_AUTOMOC ON)
+        FIND_PACKAGE(Qt5Core REQUIRED)
+        FIND_PACKAGE(Qt5Widgets REQUIRED)
+        FIND_PACKAGE(Qt5X11Extras REQUIRED)
+        SET(X11Libs
+            X11
+            Xfixes #/usr/lib/x86_64-linux-gnu/libXfixes.so.3.1.0
+            Qt5X11Extras #ln -s /home/developer/oosman/Qt5.12.1/5.12.1/gcc_64/lib/libQt5X11Extras.so ~/work/libs/build/linux/bin/libQt5X11Extras.so
+        )
         add_executable(cli ../COPYING ${InputFiles} ${OutputFiles} ${GETOPT} ${X265_RC_FILE}
                        ${ExportDefs} x265.cpp x265.h x265cli.h)
         if(WIN32 OR NOT ENABLE_SHARED OR INTEL_CXX)
@@ -742,7 +753,8 @@ if(ENABLE_CLI)
             # requires internal APIs not exported from the DLL
             target_link_libraries(cli x265-static ${PLATFORM_LIBS})
         else()
-            target_link_libraries(cli x265-shared ${PLATFORM_LIBS})
+            target_link_libraries(cli x265-shared ${PLATFORM_LIBS}
+                ${Qt5Widgets_LIBRARIES} ${X11Libs})
         endif()
     endif()
     set_target_properties(cli PROPERTIES OUTPUT_NAME x265)

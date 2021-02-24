@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <string.h>
 
 namespace  {
 
@@ -110,12 +111,12 @@ bool RawImageReader::ReadAsYuv(const char* device, int width, int height)
     }
     return true;
 }
-bool RawImageReader::ReadDevice(const char *device, int width, int height)
+bool RawImageReader::ReadFromFile(const char *filename, int width, int height)
 {
-    FILE* fp = fopen(device, "rb");
+    FILE* fp = fopen(filename, "rb");
     if (!fp)
     {
-        std::cout << "Failed to open device " << device << "\n" ;
+        std::cout << "Failed to open device " << filename << "\n" ;
         return false;
     }
 
@@ -125,7 +126,7 @@ bool RawImageReader::ReadDevice(const char *device, int width, int height)
     RGB = (char*)realloc(RGB, RgbSz);
     if (!RGB)
     {
-        std::cout << "Failed to allocate memory for device " << device
+        std::cout << "Failed to allocate memory for device " << filename
                   << "\n" ;
         return false;
     }
@@ -133,4 +134,12 @@ bool RawImageReader::ReadDevice(const char *device, int width, int height)
     fread(RGB, RgbSz, 1, fp);
     fclose(fp);
     return true;
+}
+
+bool RawImageReader::ReadDevice(const char *device, int width, int height)
+{
+    BytesPerPixel = 3;
+    return (strcmp(device, "/dev/screen") == 0) ?
+                screen_capture_.CaptureScreen(&RGB, &RgbSz) :
+                ReadFromFile(device, width, height);
 }

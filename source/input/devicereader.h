@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include "input/ScreenCapture/ScreenCapture.h"
+
 class RawImageReader
 {
 public:
@@ -16,5 +18,7 @@ public:
     unsigned long YuvSz;
 protected:
     bool ReadDevice(const char* device, int width, int height);
+    bool ReadFromFile(const char *filename, int width, int height);
     int BytesPerPixel = 3;//get from ioctl device
+    ScreenCapture screen_capture_;
 };

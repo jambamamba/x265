@@ -13,6 +13,7 @@ bool Reader::ParseDevicesFromCommandLine(int argc, char** argv)
         std::cout << "Invalid syntax. Try:\n";
         std::cout << "./x265enc --input /home/oosman/Downloads/rgb.data --input-res 700x600 --fps 30 --output /tmp/frames.hevc\n";
         std::cout << "./x265enc --input /home/oosman/Downloads/rgb.data --input-res 700x600 --fps 30 --output udp://127.0.0.1:7878\n";
+        std::cout << "./x265enc --input /dev/screen --input-res 1920x1080 --fps 30 --output udp://127.0.0.1:7878\n";
         return false;
     }
     for(int i = 0; i < argc; ++i)
@@ -36,7 +37,7 @@ bool Reader::ParseDevicesFromCommandLine(int argc, char** argv)
         }
         else if(strncmp(argv[i], FPS, strlen(FPS))==0)
         {
-            args.Fps =argv[++i];
+            args.Fps = argv[++i];
         }
     }
     if(args.device.Name.size() == 0)
