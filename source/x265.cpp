@@ -38,6 +38,7 @@
 #include <vld.h>
 #endif
 
+#include <atomic>
 #include <functional>
 #include <signal.h>
 #include <errno.h>
@@ -851,7 +852,9 @@ static int rpuParser(x265_picture * pic, FILE * ptr)
 
 int x265main(int argc,
              char **argv,
-             std::function<int(const char *data, ssize_t bytes)> callback
+             std::function<int(char **data, ssize_t *bytes, int width, int height)> readRgb888,
+             std::function<int(const char *data, ssize_t bytes)> writeEncodedFrame,
+             std::atomic<bool> &killed
              )//--input /dev/screen --input-res 1920x1080 --fps 30 --output udp://127.0.0.1:7878
 {
 #if HAVE_VLD
@@ -862,7 +865,7 @@ int x265main(int argc,
     THREAD_NAME("API", 0);
 
     /////osm
-    Reader reader;
+    Reader reader(readRgb888);
     if(!reader.ParseDevicesFromCommandLine(argc, argv))
     {
         return -1;
@@ -879,7 +882,7 @@ int x265main(int argc,
     ReconPlay* reconPlay = NULL;
     CLIOptions cliopt;
 
-    if (cliopt.parse(argc, argv, &reader, callback))
+    if (cliopt.parse(argc, argv, &reader, writeEncodedFrame))
     {
         cliopt.destroy();
         if (cliopt.api)
@@ -987,7 +990,7 @@ int x265main(int argc,
     }
 
     // main encoder loop
-    while (pic_in && !b_ctrl_c)
+    while (pic_in && !b_ctrl_c && !killed)
     {
         pic_orig.poc = (param->bField && param->interlaceMode) ? inFrameCount * 2 : inFrameCount;
         if (cliopt.qpfile)
@@ -1143,7 +1146,7 @@ int x265main(int argc,
     }
 
     /* Flush the encoder */
-    while (!b_ctrl_c)
+    while (!b_ctrl_c && !killed)
     {
         int numEncoded = api->encoder_encode(encoder, &p_nal, &nal, NULL, pic_recon);
         if (numEncoded < 0)
@@ -1191,7 +1194,7 @@ fail:
     delete reconPlay;
 
     api->encoder_get_stats(encoder, &stats, sizeof(stats));
-    if (param->csvfn && !b_ctrl_c)
+    if (param->csvfn && !b_ctrl_c && !killed)
 #if ENABLE_LIBVMAF
         api->vmaf_encoder_log(encoder, argc, argv, param, vmafdata);
 #else
@@ -1212,7 +1215,7 @@ fail:
     }
     cliopt.output->closeFile(largest_pts, second_largest_pts);
 
-    if (b_ctrl_c)
+    if (b_ctrl_c || killed)
         general_log(param, NULL, X265_LOG_INFO, "aborted at input frame %d, output frame %d\n",
                     cliopt.seek + inFrameCount, stats.encodedPictureCount);
 
@@ -1242,8 +1245,10 @@ fail:
 
     return ret;
 }
+#ifndef USE_X265_LIB
 int main(int argc, char **argv)
 {
-    return x265main(argc, argv, nullptr);
+    std::atomic<bool> killed;
+    return x265main(argc, argv, nullptr, nullptr, killed);
 }
-
+#endif

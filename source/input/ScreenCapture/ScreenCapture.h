@@ -1,17 +1,17 @@
 #pragma once
 
-#include <QList>
+
+#include "input/rgbreader.h"
 
 class QScreen;
 
-class ScreenCapture
+class ScreenCapture : public rgbreader
 {
 public:
     ScreenCapture();
-    bool CaptureScreen(char **rgb, unsigned long *rgbSz);
+    virtual int readImage(char **rgb, ssize_t *bytes, int width, int height) override;
 protected:
     void InitAvailableScreens();
     QScreen *GetCurrentScreen() const;
-    QList<QScreen *> m_screens;
 };
 

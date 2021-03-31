@@ -705,8 +705,8 @@ add_custom_target(uninstall
 set(ENABLE_CLI ON CACHE BOOL "Build standalone CLI application")
 if(ENABLE_CLI)
     file(GLOB InputFiles input/input.cpp input/yuv.cpp input/y4m.cpp
-        input/frameq.cpp input/reader.cpp input/devicereader.cpp
-        input/ScreenCapture/*
+	input/frameq.cpp input/reader.cpp input/devicereader.cpp input/rgbreader.cpp
+	input/ScreenCapture/*
         input/*.h input/yuv_rgb.c input/yuv_rgb.h)
     file(GLOB OutputFiles output/output.cpp output/reconplay.cpp output/writer.cpp output/*.h
                           output/yuv.cpp output/y4m.cpp # recon
@@ -755,7 +755,16 @@ if(ENABLE_CLI)
         else()
             target_link_libraries(cli x265-shared ${PLATFORM_LIBS}
                 ${Qt5Widgets_LIBRARIES} ${X11Libs})
-        endif()
+	endif()
+	#osm
+	#remove ScreenCapture
+	file(GLOB InputFiles input/input.cpp input/yuv.cpp input/y4m.cpp
+	    input/frameq.cpp input/reader.cpp input/rgbreader.cpp input/devicereader.cpp
+	    input/*.h input/yuv_rgb.c input/yuv_rgb.h)
+	add_library(x265 STATIC ../COPYING ${InputFiles} ${OutputFiles} ${GETOPT} ${X265_RC_FILE}
+	    $<TARGET_OBJECTS:encoder> $<TARGET_OBJECTS:common> ${ASM_OBJS}
+	    ${ExportDefs} x265.cpp x265.h x265cli.h)
+	target_compile_definitions(x265 PRIVATE USE_X265_LIB)
     endif()
     set_target_properties(cli PROPERTIES OUTPUT_NAME x265)
     if(LINKER_OPTIONS)

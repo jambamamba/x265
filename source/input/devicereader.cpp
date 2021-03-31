@@ -4,6 +4,9 @@
 #include <iostream>
 #include <string.h>
 
+#include "input/ScreenCapture/ScreenCapture.h"
+#include "input/rgbreader.h"
+
 namespace  {
 
 inline int clamp(int num, int min, int max)
@@ -31,10 +34,11 @@ void makeRgbFile(int width, int height)
 }
 }//namespace
 
-RawImageReader::RawImageReader()
+RawImageReader::RawImageReader(std::function<int(char **data, ssize_t *bytes, int width, int height)> readRgb888)
     : RGB(nullptr)
     , YUV(nullptr)
     , RgbSz(0)
+    , _rgbreader(new rgbreader(readRgb888))
 {
 }
 
@@ -42,6 +46,7 @@ RawImageReader::~RawImageReader()
 {
     if(RGB) free(RGB);
     if(YUV) free(YUV);
+    if(_rgbreader) delete _rgbreader;
 }
 
 bool RawImageReader::ReadAsRgb(const char* device, int width, int height)
@@ -140,6 +145,6 @@ bool RawImageReader::ReadDevice(const char *device, int width, int height)
 {
     BytesPerPixel = 3;
     return (strcmp(device, "/dev/screen") == 0) ?
-                screen_capture_.CaptureScreen(&RGB, &RgbSz) :
+                _rgbreader->readImage(&RGB, &RgbSz, width, height) :
                 ReadFromFile(device, width, height);
 }

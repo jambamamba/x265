@@ -8,12 +8,16 @@
 #include <QCursor>
 #include <QPixmap>
 
+namespace  {
+QList<QScreen *> m_screens;
+}
 ScreenCapture::ScreenCapture()
+    : rgbreader(nullptr)
 {
     InitAvailableScreens();
 }
 //--input /dev/screen --input-res 1920x1080 --fps 1 --preset ultrafast --tune psnr --tune ssim --tune fastdecode  --tune zerolatency --output udp://127.0.0.1:7878
-bool ScreenCapture::CaptureScreen(char **rgb, unsigned long *rgbSz)
+int ScreenCapture::readImage(char **rgb, ssize_t *rgbSz, int , int )
 {
 //    *rgbSz = 1260000;
 //    *rgb = (char*)realloc(*rgb, *rgbSz);

@@ -1,8 +1,9 @@
 #pragma once
 
-#include <string.h>
+#include <functional>
 #include <iostream>
 #include <memory>
+#include <string.h>
 #include <vector>
 
 #include "frameq.h"
@@ -10,7 +11,7 @@
 class Reader
 {
 public:
-    Reader();
+    Reader(std::function<int(char **data, ssize_t *bytes, int width, int height)> _readRgb888);
 
     struct Device {
         std::string Name;
@@ -28,4 +29,5 @@ public:
 
     FrameQueue queue;
     CommandLineArs args;
+    std::function<int(char **data, ssize_t *bytes, int width, int height)> _readRgb888;
 };

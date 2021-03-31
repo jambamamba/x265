@@ -2,7 +2,8 @@
 #include "devicereader.h"
 #include "frameq.h"
 
-Reader::Reader()
+Reader::Reader(std::function<int(char **data, ssize_t *bytes, int width, int height)> readRgb888)
+    : _readRgb888(readRgb888)
 {
 }
 
@@ -50,7 +51,7 @@ bool Reader::ParseDevicesFromCommandLine(int argc, char** argv)
 
 bool Reader::ReadYuvFrame(char *frame, uint32_t framesz, int width, int height)
 {
-    RawImageReader reader;
+    RawImageReader reader(_readRgb888);
     if(!reader.ReadAsYuv(args.device.Name.c_str(), width, height))
     {
         std::cout << "Failed to read device\n";
