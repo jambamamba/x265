@@ -38,6 +38,7 @@
 #include <vld.h>
 #endif
 
+#include <functional>
 #include <signal.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -119,7 +120,7 @@ struct CLIOptions
 
     void destroy();
     void printStatus(uint32_t frameNum);
-    bool parse(int argc, char **argv, Reader *reader);
+    bool parse(int argc, char **argv, Reader *reader, std::function<int(const char *data, ssize_t bytes)> callback);
     bool parseZoneParam(int argc, char **argv, x265_param* globalParam, int zonefileCount);
     bool parseQPFile(x265_picture &pic_org);
     bool parseZoneFile();
@@ -278,7 +279,7 @@ bool CLIOptions::parseZoneParam(int argc, char **argv, x265_param* globalParam, 
     return false;
 }
 
-bool CLIOptions::parse(int argc, char **argv, Reader *reader)
+bool CLIOptions::parse(int argc, char **argv, Reader *reader, std::function<int(const char *data, ssize_t bytes)> callback)
 {
     bool bError = false;
     int bShowHelp = false;
@@ -656,7 +657,7 @@ bool CLIOptions::parse(int argc, char **argv, Reader *reader)
         return true;
     }
 #endif
-    this->output = OutputFile::open(outputfn, info);
+    this->output = OutputFile::open(outputfn, info, callback);
     if (this->output->isFail())
     {
         x265_log_file(param, X265_LOG_ERROR, "failed to open output file <%s> for writing\n", outputfn);
@@ -848,7 +849,10 @@ static int rpuParser(x265_picture * pic, FILE * ptr)
  * 3 - unable to generate stream headers
  * 4 - encoder abort */
 
-int main(int argc, char **argv)
+int x265main(int argc,
+             char **argv,
+             std::function<int(const char *data, ssize_t bytes)> callback
+             )//--input /dev/screen --input-res 1920x1080 --fps 30 --output udp://127.0.0.1:7878
 {
 #if HAVE_VLD
     // This uses Microsoft's proprietary WCHAR type, but this only builds on Windows to start with
@@ -875,7 +879,7 @@ int main(int argc, char **argv)
     ReconPlay* reconPlay = NULL;
     CLIOptions cliopt;
 
-    if (cliopt.parse(argc, argv, &reader))
+    if (cliopt.parse(argc, argv, &reader, callback))
     {
         cliopt.destroy();
         if (cliopt.api)
@@ -1238,3 +1242,8 @@ fail:
 
     return ret;
 }
+int main(int argc, char **argv)
+{
+    return x265main(argc, argv, nullptr);
+}
+

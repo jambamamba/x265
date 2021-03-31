@@ -43,13 +43,15 @@ ReconFile* ReconFile::open(const char *fname, int width, int height, uint32_t bi
         return new YUVOutput(fname, width, height, bitdepth, csp);
 }
 
-OutputFile* OutputFile::open(const char *fname, InputFileInfo& inputInfo)
+OutputFile* OutputFile::open(const char *fname, InputFileInfo& inputInfo, std::function<int(const char *data, ssize_t bytes)> callback)
 {
-    std::string ip;
-    std::string port;
     if(strncmp(fname, UDP, strlen(UDP)) == 0)
     {
         return UdpWriter::construct(fname);
+    }
+    else if(strncmp(fname, BUFFER, strlen(BUFFER)) == 0)
+    {
+        return BufferWriter::construct(callback);
     }
     return new RAWOutput(fname, inputInfo);
 }

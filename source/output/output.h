@@ -25,6 +25,8 @@
 #ifndef X265_OUTPUT_H
 #define X265_OUTPUT_H
 
+#include <functional>
+
 #include "x265.h"
 #include "input/input.h"
 
@@ -63,7 +65,7 @@ public:
 
     OutputFile() {}
 
-    static OutputFile* open(const char* fname, InputFileInfo& inputInfo);
+    static OutputFile* open(const char* fname, InputFileInfo& inputInfo, std::function<int(const char *data, ssize_t bytes)> callback = nullptr);
 
     virtual bool isFail() const = 0;
 

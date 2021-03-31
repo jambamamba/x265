@@ -1,5 +1,45 @@
 #include "writer.h"
 
+BufferWriter::BufferWriter(std::function<int(const char *data, ssize_t bytes)> writeData)
+    : _writeData(writeData)
+{}
+
+BufferWriter::~BufferWriter()
+{}
+
+BufferWriter *BufferWriter::construct(std::function<int(const char *data, ssize_t bytes)> writeData)
+{
+    return new BufferWriter(writeData);
+}
+
+int BufferWriter::writeHeaders(const x265_nal* nal, uint32_t nalcount)
+{
+    x265_picture unused;
+    return writeFrame(nal, nalcount, unused);
+}
+int BufferWriter::writeFrame(const x265_nal* nal, uint32_t nalcount, x265_picture&)
+{
+    uint32_t bytes = 0;
+
+    for (uint32_t i = 0; i < nalcount; i++)
+    {
+        int res = _writeData((const char*)nal->payload, nal->sizeBytes);
+        if(res > 0)
+        {
+            bytes += res;
+        }
+        else if((uint32_t)res != nal->sizeBytes)
+        {
+            //osm fix me!
+        }
+        nal++;
+    }
+
+    return bytes;
+}
+void BufferWriter::closeFile(int64_t largest_pts, int64_t second_largest_pts)
+{}
+
 UdpWriter::UdpWriter()
     : sock(-1)
 {
