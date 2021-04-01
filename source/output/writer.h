@@ -19,9 +19,9 @@ constexpr char UDP[] = "udp://";
 class BufferWriter : public x265::OutputFile
 {
 public:
-    BufferWriter(std::function<int(const char *data, ssize_t bytes)> writeData = nullptr);
+    BufferWriter(std::function<int(const unsigned char *data, ssize_t bytes)> writeData = nullptr);
     ~BufferWriter();
-    static BufferWriter *construct(std::function<int(const char *data, ssize_t bytes)> writeData);
+    static BufferWriter *construct(std::function<int(const unsigned char *data, ssize_t bytes)> writeData);
 
     virtual bool isFail() const override { return false; }
     virtual bool needPTS() const override{ return false; }
@@ -34,7 +34,7 @@ public:
     virtual void closeFile(int64_t largest_pts, int64_t second_largest_pts) override;
 
 protected:
-    std::function<int(const char *data, ssize_t bytes)> _writeData;
+    std::function<int(const unsigned char *data, ssize_t bytes)> _writeData;
 };
 
 class UdpWriter : public BufferWriter

@@ -4,7 +4,6 @@
 #include <iostream>
 #include <string.h>
 
-#include "input/ScreenCapture/ScreenCapture.h"
 #include "input/rgbreader.h"
 
 namespace  {
@@ -44,7 +43,6 @@ RawImageReader::RawImageReader(std::function<int(char **data, ssize_t *bytes, in
 
 RawImageReader::~RawImageReader()
 {
-    if(RGB) free(RGB);
     if(YUV) free(YUV);
     if(_rgbreader) delete _rgbreader;
 }

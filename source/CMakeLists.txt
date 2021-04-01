@@ -706,7 +706,6 @@ set(ENABLE_CLI ON CACHE BOOL "Build standalone CLI application")
 if(ENABLE_CLI)
     file(GLOB InputFiles input/input.cpp input/yuv.cpp input/y4m.cpp
 	input/frameq.cpp input/reader.cpp input/devicereader.cpp input/rgbreader.cpp
-	input/ScreenCapture/*
         input/*.h input/yuv_rgb.c input/yuv_rgb.h)
     file(GLOB OutputFiles output/output.cpp output/reconplay.cpp output/writer.cpp output/*.h
                           output/yuv.cpp output/y4m.cpp # recon

@@ -1,13 +1,13 @@
 #include "writer.h"
 
-BufferWriter::BufferWriter(std::function<int(const char *data, ssize_t bytes)> writeData)
+BufferWriter::BufferWriter(std::function<int(const unsigned char *data, ssize_t bytes)> writeData)
     : _writeData(writeData)
 {}
 
 BufferWriter::~BufferWriter()
 {}
 
-BufferWriter *BufferWriter::construct(std::function<int(const char *data, ssize_t bytes)> writeData)
+BufferWriter *BufferWriter::construct(std::function<int(const unsigned char *data, ssize_t bytes)> writeData)
 {
     return new BufferWriter(writeData);
 }
@@ -23,7 +23,7 @@ int BufferWriter::writeFrame(const x265_nal* nal, uint32_t nalcount, x265_pictur
 
     for (uint32_t i = 0; i < nalcount; i++)
     {
-        int res = _writeData((const char*)nal->payload, nal->sizeBytes);
+        int res = _writeData(nal->payload, nal->sizeBytes);
         if(res > 0)
         {
             bytes += res;

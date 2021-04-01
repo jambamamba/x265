@@ -65,7 +65,7 @@ public:
 
     OutputFile() {}
 
-    static OutputFile* open(const char* fname, InputFileInfo& inputInfo, std::function<int(const char *data, ssize_t bytes)> callback = nullptr);
+    static OutputFile* open(const char* fname, InputFileInfo& inputInfo, std::function<int(const unsigned char *data, ssize_t bytes)> callback = nullptr);
 
     virtual bool isFail() const = 0;
 

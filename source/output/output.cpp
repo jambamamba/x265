@@ -43,7 +43,7 @@ ReconFile* ReconFile::open(const char *fname, int width, int height, uint32_t bi
         return new YUVOutput(fname, width, height, bitdepth, csp);
 }
 
-OutputFile* OutputFile::open(const char *fname, InputFileInfo& inputInfo, std::function<int(const char *data, ssize_t bytes)> callback)
+OutputFile* OutputFile::open(const char *fname, InputFileInfo& inputInfo, std::function<int(const unsigned char *data, ssize_t bytes)> writeEncodedFrame)
 {
     if(strncmp(fname, UDP, strlen(UDP)) == 0)
     {
@@ -51,7 +51,7 @@ OutputFile* OutputFile::open(const char *fname, InputFileInfo& inputInfo, std::f
     }
     else if(strncmp(fname, BUFFER, strlen(BUFFER)) == 0)
     {
-        return BufferWriter::construct(callback);
+        return BufferWriter::construct(writeEncodedFrame);
     }
     return new RAWOutput(fname, inputInfo);
 }
