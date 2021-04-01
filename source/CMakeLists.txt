@@ -756,14 +756,10 @@ if(ENABLE_CLI)
                 ${Qt5Widgets_LIBRARIES} ${X11Libs})
 	endif()
 	#osm
-	#remove ScreenCapture
-	file(GLOB InputFiles input/input.cpp input/yuv.cpp input/y4m.cpp
-	    input/frameq.cpp input/reader.cpp input/rgbreader.cpp input/devicereader.cpp
-	    input/*.h input/yuv_rgb.c input/yuv_rgb.h)
-	add_library(x265 STATIC ../COPYING ${InputFiles} ${OutputFiles} ${GETOPT} ${X265_RC_FILE}
+	add_library(x265encoder STATIC ../COPYING ${InputFiles} ${OutputFiles} ${GETOPT} ${X265_RC_FILE}
 	    $<TARGET_OBJECTS:encoder> $<TARGET_OBJECTS:common> ${ASM_OBJS}
 	    ${ExportDefs} x265.cpp x265.h x265cli.h)
-	target_compile_definitions(x265 PRIVATE USE_X265_LIB)
+	target_compile_definitions(x265encoder PRIVATE USE_X265_LIB)
     endif()
     set_target_properties(cli PROPERTIES OUTPUT_NAME x265)
     if(LINKER_OPTIONS)
